@@ -529,9 +529,9 @@ server <- function(input, output, session) {
   })
   
   # Forecast S&P 500 using ARIMA
-  forecast_sp500 <- function(data, forecast_days) {
+  forecast_sp500 <- function(data, forecast_months) {
     model <- auto.arima(data$`S&P500`)
-    forecast <- forecast(model, h = forecast_days)
+    forecast <- forecast(model, h = forecast_months * 30)  # Assume 30 days per month for simplicity
     return(forecast)
   }
   
@@ -541,8 +541,8 @@ server <- function(input, output, session) {
   # Generate forecast when button is clicked
   observeEvent(input$forecast_btn, {
     req(sp500_data())
-    forecast_days <- as.numeric(difftime(input$forecast_range[2], input$forecast_range[1], units = "days"))
-    forecast <- forecast_sp500(sp500_data(), forecast_days)
+    forecast_months <- as.numeric(difftime(input$forecast_range[2], input$forecast_range[1], units = "days")) / 30
+    forecast <- forecast_sp500(sp500_data(), forecast_months)
     forecast_data(forecast)
   })
   
@@ -564,7 +564,8 @@ server <- function(input, output, session) {
                 line = list(color = '#1E90FF'), name = 'Historical') %>%
       layout(title = "S&P 500 Index Trend and Forecast",
              xaxis = list(title = "Date"),
-             yaxis = list(title = "S&P 500 Index Value"))
+             yaxis = list(title = "S&P 500 Index Value"),
+             legend = list(orientation = 'h', x = 0.5, xanchor = 'center', y = 1))
     
     if (!is.null(forecast_data())) {
       forecast <- forecast_data()
@@ -582,7 +583,7 @@ server <- function(input, output, session) {
   
   # Calculate investment returns with improved logic
   calculate_returns <- function(initial_investment, monthly_investment, forecast, forecast_type) {
-    total_periods <- length(forecast$mean)
+    total_periods <- length(forecast$mean) / 30  # Convert days to months
     portfolio_value <- initial_investment
     log_data <- data.frame(
       Period = integer(),
@@ -596,11 +597,11 @@ server <- function(input, output, session) {
     for (i in 1:total_periods) {
       if (i > 1) {
         if (forecast_type == "Optimistic") {
-          monthly_return <- (forecast$upper[i] - forecast$upper[i-1]) / forecast$upper[i-1]
+          monthly_return <- (forecast$upper[i*30] - forecast$upper[(i-1)*30]) / forecast$upper[(i-1)*30]
         } else if (forecast_type == "Pessimistic") {
-          monthly_return <- (forecast$lower[i] - forecast$lower[i-1]) / forecast$lower[i-1]
+          monthly_return <- (forecast$lower[i*30] - forecast$lower[(i-1)*30]) / forecast$lower[(i-1)*30]
         } else {
-          monthly_return <- (forecast$mean[i] - forecast$mean[i-1]) / forecast$mean[i-1]
+          monthly_return <- (forecast$mean[i*30] - forecast$mean[(i-1)*30]) / forecast$mean[(i-1)*30]
         }
       } else {
         monthly_return <- 0  # No return for the first period
@@ -648,7 +649,7 @@ server <- function(input, output, session) {
     cat("Initial Investment:", input$initial_investment, "\n")
     cat("Monthly Investment:", input$monthly_investment, "\n")
     cat("Forecast Type:", input$forecast_type, "\n")
-    cat("Forecast Periods:", length(forecast$mean), "\n")
+    cat("Forecast Periods:", length(forecast$mean) / 30, "\n")  # Convert days to months
     cat("Total Invested:", total_invested, "\n")
     cat("Projected Value:", projected_value, "\n")
     cat("ROI:", roi, "%\n")
