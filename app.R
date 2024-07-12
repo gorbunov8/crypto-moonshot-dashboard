@@ -78,11 +78,33 @@ getgeodata <- function() {
   return(geo_data)
 }
 
+# Function to Load CSV Data from the 'data' Folder and Count Rows and Columns
+count_csv_data <- function(folder_path) {
+  files <- list.files(folder_path, pattern = "*.csv", full.names = TRUE, recursive = TRUE)
+  total_rows <- 0
+  total_cols <- 0
+  for (file in files) {
+    data <- read_csv(file)
+    total_rows <- total_rows + nrow(data)
+    total_cols <- total_cols + ncol(data)
+  }
+  return(list(rows = total_rows, cols = total_cols))
+}
+
+# Function to Calculate Date Range from 'sp500_index.csv'
+calculate_date_range <- function() {
+  sp500_data <- read_csv("data/stocks/sp500_index.csv") %>%
+    mutate(Date = as.Date(Date))
+  date_range <- range(sp500_data$Date, na.rm = TRUE)
+  return(date_range)
+}
+
 # Shiny UI
 ui <- dashboardPage(
   dashboardHeader(title = "Global Market Insights Dashboard"),
   dashboardSidebar(
     sidebarMenu(
+      menuItem("Introduction", tabName = "introduction"),  # Updated tab name
       menuItem("Market Index", tabName = "market_index"),
       menuItem("Market Changes", tabName = "market_changes"),
       menuItem("Stock Price Volatility", tabName = "volatility"),
@@ -92,6 +114,51 @@ ui <- dashboardPage(
   ),
   dashboardBody(
     tabItems(
+      # Introduction Tab
+      tabItem(
+        tabName = "introduction",
+        fluidRow(
+          box(
+            title = "Project Introduction",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            div(
+              HTML("
+              <p>Welcome to the <strong>Global Market Insights Dashboard</strong>. This project aims to provide comprehensive insights into global stock markets, including market indices, changes, and volatility. Utilize the various tabs to explore detailed maps, trends, and forecasts.</p>
+              ")
+            )
+          )
+        ),
+        fluidRow(
+          box(
+            title = "Note",
+            status = "warning",
+            solidHeader = TRUE,
+            width = 12,
+            div(
+              HTML("
+              <p>Not a financial advice.</p>
+              ")
+            )
+          )
+        ),
+        fluidRow(
+          box(
+            title = "Data Summary",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            valueBoxOutput("total_observations_box"),
+            valueBoxOutput("missing_values_box"),
+            valueBoxOutput("issues_box"),
+            valueBoxOutput("total_variables_box"),
+            valueBoxOutput("countries_analyzed_box"),
+            valueBoxOutput("date_range_box")
+          )
+        )
+      ),
+      
       # Market Index Tab
       tabItem(
         tabName = "market_index",
@@ -216,8 +283,12 @@ ui <- dashboardPage(
               min = Sys.Date(),
               max = Sys.Date() + 3650
             ),
-            actionButton("forecast_btn", "Generate Forecast", class = "btn-primary"),
-            actionButton("reset_btn", "Reset", class = "btn-warning")
+            div(
+              style = "display: flex; justify-content: space-between; align-items: center;",
+              actionButton("calc_btn", "Calculate", class = "btn-primary"),
+              actionButton("forecast_btn", "Generate Forecast", class = "btn-primary"),
+              actionButton("reset_btn", "Reset", class = "btn-warning")
+            )
           )
         ),
         fluidRow(
@@ -257,10 +328,6 @@ ui <- dashboardPage(
                   selected = "Forecast"
                 )
               )
-            ),
-            div(
-              style = "text-align: center; margin-top: 20px;",
-              actionButton("calc_btn", "Calculate", class = "btn-primary")
             )
           ),
           valueBoxOutput("projected_value_box", width = 4)
@@ -324,6 +391,81 @@ server <- function(input, output, session) {
   merged_volatility_data <- reactive({
     req(volatility_data(), geo_data())
     merge(volatility_data(), geo_data(), by = "country", all.x = TRUE)
+  })
+  
+  # Calculate total rows and columns in CSV files
+  csv_data_summary <- reactive({
+    data_summary <- count_csv_data("data/") 
+    stocks_summary <- count_csv_data("data/stocks/")
+    total_rows <- data_summary$rows + stocks_summary$rows
+    total_cols <- data_summary$cols + stocks_summary$cols
+    return(list(rows = total_rows, cols = total_cols))
+  })
+  
+  # KPIs Calculation
+  output$total_observations_box <- renderValueBox({
+    req(merged_data(), merged_volatility_data(), csv_data_summary())
+    total_observations <- nrow(merged_data()) + nrow(merged_volatility_data()) + csv_data_summary()$rows
+    valueBox(
+      value = total_observations,
+      subtitle = "Total Observations Analyzed",
+      icon = icon("database"),
+      color = "blue"
+    )
+  })
+  
+  output$missing_values_box <- renderValueBox({
+    req(merged_data(), merged_volatility_data())
+    total_missing_values <- sum(is.na(merged_data())) + sum(is.na(merged_volatility_data()))
+    valueBox(
+      value = total_missing_values,
+      subtitle = "Total Missing Values",
+      icon = icon("exclamation-triangle"),
+      color = "yellow"
+    )
+  })
+  
+  output$issues_box <- renderValueBox({
+    req(merged_data(), merged_volatility_data())
+    data_issues <- 0  # Placeholder for actual data issues
+    valueBox(
+      value = data_issues,
+      subtitle = "Data Issues Identified",
+      icon = icon("bug"),
+      color = "red"
+    )
+  })
+  
+  output$total_variables_box <- renderValueBox({
+    req(merged_data(), merged_volatility_data(), csv_data_summary())
+    total_variables <- ncol(merged_data()) + ncol(merged_volatility_data()) + csv_data_summary()$cols
+    valueBox(
+      value = total_variables,
+      subtitle = "Total Variables Count",
+      icon = icon("th-list"),
+      color = "purple"
+    )
+  })
+  
+  output$countries_analyzed_box <- renderValueBox({
+    req(merged_data(), merged_volatility_data())
+    total_countries <- length(unique(c(merged_data()$country, merged_volatility_data()$country)))
+    valueBox(
+      value = total_countries,
+      subtitle = "Total Countries Analyzed",
+      icon = icon("globe"),
+      color = "green"
+    )
+  })
+  
+  output$date_range_box <- renderValueBox({
+    date_range <- calculate_date_range()
+    valueBox(
+      value = paste(format(date_range[1], "%Y"), "to", format(date_range[2], "%Y")),
+      subtitle = "Date Range of Data",
+      icon = icon("calendar-alt"),
+      color = "teal"
+    )
   })
   
   # Update country selection input
