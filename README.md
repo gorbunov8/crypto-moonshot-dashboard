@@ -3,6 +3,7 @@
 **A Shiny dashboard to provide comprehensive insights into global stock markets, including market indices, changes, and volatility.**
 
 ---
+![Data Summary Dashboard](img/data_summary_dashboard.png)
 
 ## Project Overview
 
