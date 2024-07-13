@@ -125,7 +125,8 @@ ui <- dashboardPage(
             width = 12,
             div(
               HTML("
-              <p>Welcome to the <strong>Global Market Insights Dashboard</strong>. This project aims to provide comprehensive insights into global stock markets, including market indices, changes, and volatility. Utilize the various tabs to explore detailed maps, trends, and forecasts.</p>
+    <p>Welcome to the <strong>Global Market Insights Dashboard</strong>. This project aims to provide comprehensive insights into global stock markets, including market indices, changes, and volatility. Utilize the various tabs to explore detailed maps, trends, and forecasts.</p>
+    <p>You can find this project on <a href='https://github.com/gorbunov8/global-market-insights' target='_blank'>GitHub</a>.</p>
               ")
             )
           )
