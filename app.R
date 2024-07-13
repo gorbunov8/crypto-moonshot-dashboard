@@ -281,7 +281,9 @@ ui <- dashboardPage(
               start = Sys.Date(),
               end = Sys.Date() + 365,
               min = Sys.Date(),
-              max = Sys.Date() + 3650
+              max = Sys.Date() + 3650,
+              format = "yyyy-mm",
+              startview = "year"
             ),
             div(
               style = "display: flex; justify-content: space-between; align-items: center;",
