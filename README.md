@@ -25,8 +25,10 @@ This dashboard is for informational purposes only and should not be considered f
 
 1. **Install Required Packages**:
    ```r
-   install.packages(c("shiny", "leaflet", "shinydashboard", "shinyWidgets", "rvest", "readr", "leaflet.extras", "DT", "dplyr", "ggplot2", "plotly", "forecast"))```
+   install.packages(c("shiny", "leaflet", "shinydashboard", "shinyWidgets", "rvest", "readr", "leaflet.extras", "DT", "dplyr", "ggplot2", "plotly", "forecast"))
+   ```
    
 2. **Run the Application**:
    ```r
-   shinyApp(ui, server)```   
+   shinyApp(ui, server)
+   ```   
