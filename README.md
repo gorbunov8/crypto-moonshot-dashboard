@@ -24,14 +24,14 @@ This dashboard is for informational purposes only and should not be considered f
 ## Getting Started
 
 1. **Install Required Packages**:
-   ```r
+   ```
    install.packages(c("shiny", "leaflet", "shinydashboard", "shinyWidgets", "rvest", "readr", "leaflet.extras", "DT", "dplyr", "ggplot2", "plotly", "forecast"))
    ```
-   
 2. **Run the Application**:
-   ```r
+   ```
    shinyApp(ui, server)
-   ```   
+   ```
+---
 
 ## Data Sources
 
@@ -39,3 +39,5 @@ This dashboard is for informational purposes only and should not be considered f
 - **Stock Price Volatility Data**: [TheGlobalEconomy.com](https://www.theglobaleconomy.com/rankings/Stock_price_volatility/)
 - **Geographic Data**: [Kaggle: Latitude and Longitude for Every Country and State](https://www.kaggle.com/datasets/paultimothymooney/latitude-and-longitude-for-every-country-and-state)
 - **S&P 500 Historical Data**: [Kaggle: S&P 500 Stocks](https://www.kaggle.com/datasets/andrewmvd/sp-500-stocks)
+
+   ```

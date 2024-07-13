@@ -773,7 +773,7 @@ server <- function(input, output, session) {
     roi <- (portfolio_value - total_invested) / total_invested * 100
     
     # Write log data to a CSV file
-    write.csv(log_data, "investment_calculation_log.csv", row.names = FALSE)
+    write.csv(log_data, "data/log/investment_calculation_log.csv", row.names = FALSE)
     
     return(list(final_value = portfolio_value, log_data = log_data, total_invested = total_invested, roi = roi))
   }
